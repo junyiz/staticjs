@@ -1,0 +1,17 @@
+{
+  "name": "static-js",
+  "version": "0.0.1",
+  "author": {
+    "name": "Junyi Zhang",
+    "url": "http://junyi.me/"
+  },
+  "description": "simple static file server",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/Junyiz/staticjs.git"
+  },
+  "dependencies": {},
+  "bin": {
+        "staticjs" : "bin/static.js"
+  }
+}
