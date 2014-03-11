@@ -81,50 +81,65 @@ http.createServer(function(request, response) {
             // 读取文件元信息
             fs.stat(realpath, function(err, stats) {
                 if (err) {
-                    response.writeHead(500, {'Content-Type': 'text/plain'});
-                    response.end(err);
-                }
-                if (stats.isDirectory()) { // 是目录，则列出目录
-                    fs.readFile(realpath + 'index.html', 'utf8', function(err, data) {
-                        if (err) {
-                            fs.readdir(realpath, function(err, files) {
-                                if (err) {
-                                    response.writeHead(500, {'Content-Type': 'text/plain'});
-                                    response.end(err);
-                                }
-                                var list = '';
-                                files.forEach(function(file) {
-                                    list += '<a href="' + path.join(pathname, file) + '">' + file + '</a><br />';
+                    responseSend({status: 500, headers: {'Content-Type': 'text/plain'}, content: err});
+                } else {
+                    if (stats.isDirectory()) { // 是目录，则列出目录
+                        // 尝试读取默认页面index.html
+                        fs.readFile(realpath + 'index.html', 'utf8', function(err, data) {
+                            if (err) { // 未找到默认页面，则响应当前目录
+                                fs.readdir(realpath, function(err, files) {
+                                    if (err) {
+                                        responseSend({status: 500, headers: {'Content-Type': 'text/plain'}, content: err});
+                                    } else {
+                                        var list = '';
+                                        files.forEach(function(file) {
+                                            list += '<a href="' + path.join(pathname, file) + '">' + file + '</a><br />';
+                                        });
+                                        responseSend({status: 200, headers: {'Content-Type': 'text/html'}, content: list});
+                                    }
                                 });
-                                response.writeHead(200, {'Content-Type': 'text/html'});
-                                response.write(list);
-                                response.end();
-                            });
-                        } else {
-                            response.writeHead(200, {'Content-Type': MIME['html']});
-                            response.write(data ? tmpl(data) : '');
-                            response.end();
-                        }
-                    });
-                } else { // 是文件，则读取文件
-                    var isHtml = extname === 'html';
-                    fs.readFile(realpath, isHtml ? 'utf8' : null, function(err, data) {
-                        if (err) {
-                            response.writeHead(500, {'Content-Type': 'text/plain'});
-                            response.end(err);
-                        }
-                        response.writeHead(200, {'Content-Type': contentType});
-                        response.write(isHtml && data ? tmpl(data) : data);
-                        response.end();
-                    });
+                            } else { // 响应默认页面
+                                responseSend({
+                                    status: 200,
+                                    headers: {
+                                        'Content-Type': 'text/html',
+                                        'Access-Control-Allow-Origin': '*',
+                                        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+                                    },
+                                    content: data ? tmpl(data) : ''
+                                });
+                            }
+                        });
+                    } else { // 是文件，则读取文件
+                        var isHtml = extname === 'html';
+                        fs.readFile(realpath, isHtml ? 'utf8' : null, function(err, data) {
+                            if (err) {
+                                responseSend({status: 500, headers: {'Content-Type': 'text/plain'}, content: err});
+                            } else {
+                                responseSend({
+                                    status: 200,
+                                    headers: {
+                                        'Content-Type': contentType,
+                                        'Access-Control-Allow-Origin': '*',
+                                        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+                                    },
+                                    content: isHtml && data ? tmpl(data) : data
+                                });
+                            }
+                        });
+                    }
                 }
             });
         } else {
-            response.writeHead(404, {'Content-Type': 'text/plain'});
-            response.write('Not Found');
-            response.end();
+            responseSend({status: 404, headers: {'Content-Type': 'text/plain'}, content: 'Not Found'});
         }
     });
+
+    function responseSend(o) {
+        response.writeHead(o.status, o.headers);
+        response.write(o.content);
+        response.end();
+    }
 }).listen(PORT);
 
 console.log('static file server runing at port: ' + PORT + '.');
