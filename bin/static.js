@@ -2,7 +2,7 @@
 
 var PORT = process.argv[2] || 8090;
 // 根目录默认为当前目录
-var dir = process.argv[2];
+var dir = process.argv[3];
 var ROOT = dir ? dir : process.cwd();
 var http = require('http');
 var url = require('url');
