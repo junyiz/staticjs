@@ -53,6 +53,22 @@ function queryStringToObj(str) {
 }
 
 http.createServer(function(request, response) {
+    var origin = request.headers.origin;
+    if (request.method === 'OPTIONS') {
+        responseSend({
+            status: 204,
+            headers: {
+                'Access-Control-Allow-Origin': origin,
+                'Access-Control-Allow-Methods': 'POST, GET, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Credentials': true,
+                'Access-Control-Max-Age': '86400', // 24 hours
+                'Access-Control-Allow-Headers': 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept'
+            },
+            content: ''
+        });
+        return;
+    }
+
     if (request.method === 'POST') {
         request.setEncoding('utf8');
         request.addListener('data', function(data) {
@@ -103,8 +119,11 @@ http.createServer(function(request, response) {
                                     status: 200,
                                     headers: {
                                         'Content-Type': 'text/html',
-                                        'Access-Control-Allow-Origin': '*',
-                                        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+                                        //'Access-Control-Allow-Origin': '*',
+                                        'Access-Control-Allow-Origin': origin,
+                                        'Access-Control-Allow-Credentials': 'true',
+                                        //'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+                                        'Access-Control-Allow-Headers': 'Accept, Content-Type'
                                     },
                                     content: data ? tmpl(data) : ''
                                 });
@@ -120,7 +139,7 @@ http.createServer(function(request, response) {
                                     status: 200,
                                     headers: {
                                         'Content-Type': contentType,
-                                        'Access-Control-Allow-Origin': '*',
+                                        'Access-Control-Allow-Origin': origin,
                                         'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
                                     },
                                     content: isHtml && data ? tmpl(data) : data
@@ -137,7 +156,7 @@ http.createServer(function(request, response) {
 
     function responseSend(o) {
         response.writeHead(o.status, o.headers);
-        response.write(o.content);
+        o.content && response.write(o.content);
         response.end();
     }
 }).listen(PORT);
