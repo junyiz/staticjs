@@ -14,7 +14,7 @@ var MIME = {
     'css':  'text/css',
     'js':   'text/javascript',
     'txt':  'text/plain',
-    'json': 'text/plain',
+    'json': 'application/json',
     'gif':  'image/gif',
     'ico':  'image/x-icon',
     'jpg':  'image/jpeg',
