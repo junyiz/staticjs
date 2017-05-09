@@ -8,7 +8,7 @@
   "description": "simple static file server",
   "repository": {
     "type": "git",
-    "url": "http://github.com/Junyiz/staticjs.git"
+    "url": "http://github.com/junyiz/staticjs.git"
   },
   "dependencies": {},
   "bin": {
